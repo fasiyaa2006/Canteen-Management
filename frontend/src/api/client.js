@@ -1,9 +1,20 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+// Normalize API URL to handle with/without trailing slashes and /api suffix
+const getBaseUrl = () => {
+  let url = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+  url = url.trim().replace(/\/+$/, ''); // remove trailing slash
+  if (!url.endsWith('/api')) {
+    url = `${url}/api`;
+  }
+  return url;
+};
+
+export const API_BASE_URL = getBaseUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 60000, // 60s timeout to allow Render free tier wakeups
   headers: {
     'Content-Type': 'application/json',
   },

@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { menuApi } from '../api/client';
+import { menuApi, API_BASE_URL } from '../api/client';
 import { useCart } from '../context/CartContext';
 import MenuCard from '../components/MenuCard';
-import { Search, ShoppingBag, ArrowRight, RefreshCw, Sparkles } from 'lucide-react';
+import { Search, ShoppingBag, ArrowRight, RefreshCw, Sparkles, AlertCircle } from 'lucide-react';
 
 export default function StudentMenu() {
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [availableOnly, setAvailableOnly] = useState(false);
@@ -15,6 +16,7 @@ export default function StudentMenu() {
 
   const fetchMenu = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await menuApi.getAll({
         category: selectedCategory !== 'All' ? selectedCategory : undefined,
@@ -23,6 +25,8 @@ export default function StudentMenu() {
       setMenuItems(res.data);
     } catch (err) {
       console.error('Failed to load menu items', err);
+      const msg = err.response?.data?.message || err.message || 'Unable to connect to the backend server.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -96,11 +100,41 @@ export default function StudentMenu() {
         </div>
       </div>
 
-      {/* Menu Grid */}
+      {/* Menu Grid / Error / Loading States */}
       {loading ? (
         <div className="loading-state">
           <div className="spinner" />
           <p>Loading fresh dishes...</p>
+          <small style={{ color: '#94a3b8', marginTop: '0.35rem' }}>
+            If the cloud server is waking up, this may take up to 45 seconds.
+          </small>
+        </div>
+      ) : error ? (
+        <div
+          className="empty-state"
+          style={{
+            background: '#ffffff',
+            border: '1px solid #fed7aa',
+            borderRadius: '12px',
+            padding: '2.5rem 1.5rem',
+            maxWidth: '560px',
+            margin: '2rem auto',
+            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
+          }}
+        >
+          <AlertCircle size={40} color="#ea580c" style={{ marginBottom: '0.75rem' }} />
+          <h3 style={{ marginBottom: '0.4rem', color: '#1e293b' }}>Server Connecting...</h3>
+          <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '0.75rem' }}>
+            Calling backend at: <code style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>{API_BASE_URL}</code>
+          </p>
+          <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '1.25rem' }}>
+            {error}
+            <br />
+            <em>On free cloud instances (Render), services sleep after inactivity and wake up on the first request.</em>
+          </p>
+          <button onClick={fetchMenu} className="btn btn-primary">
+            <RefreshCw size={16} /> Retry Now
+          </button>
         </div>
       ) : filteredItems.length === 0 ? (
         <div className="empty-state">
