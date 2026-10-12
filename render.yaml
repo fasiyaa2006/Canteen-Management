@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: canteen-backend
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    plan: free
+    envVars:
+      - key: DB_URL
+        value: jdbc:mysql://canteen-management-1-fasiyaa2006-5928.f.aivencloud.com:20144/defaultdb?sslMode=REQUIRED&serverTimezone=UTC
+      - key: DB_USERNAME
+        value: avnadmin
+      - key: DB_PASSWORD
+        sync: false
